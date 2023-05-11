@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { SERVER_PORT } from './classes/global/enviroments';
+import { SERVER_PORT } from './global/enviroments';
 import Server from './classes/server';
 import { router } from './routes/router';
 import bodyParser from 'body-parser';
@@ -19,5 +19,5 @@ server.app.use('/', router)
 
 
 server.start(()=>{
-    console.log(`Servidor corriendo en el puerto ${SERVER_PORT}`);
+    console.log(`Servidor corriendo en el puerto ${SERVER_PORT}` );
 })

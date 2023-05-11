@@ -1,6 +1,6 @@
 
 import express from 'express'
-import { SERVER_PORT } from './global/enviroments';
+import { SERVER_PORT } from '../global/enviroments';
 import socketIO  from 'socket.io';
 import http from 'http';
 //aqui viene la configuracion de deconexion 
@@ -16,9 +16,11 @@ export default class Server{
     private static _instance: Server;
 
     public app: express.Application;
+
     public port:number;
 
     public io: socketIO.Server; //encargada de emitir los eventos
+
     private httpServer: http.Server;
     
     //se declara private el constructor para asegurarnos de que haya una sola instancia de io
@@ -28,7 +30,7 @@ export default class Server{
          this.port = SERVER_PORT;
 
          //para usar el socket
-         this.httpServer = new http.Server( this.app);
+         this.httpServer = new http.Server( this.app );
          this.io = new socketIO.Server( this.httpServer, { cors: { origin: true, credentials: true } } );
   
           this.escucharSockets();
@@ -41,13 +43,22 @@ export default class Server{
 
     private escucharSockets(){
 
-        console.log('escuchando conexiones');
+        console.log('escuchando conexiones - sockets');
 
         this.io.on('connection', cliente=>{
-            console.log('nuevo cliente conectado');
-             
+           // console.log(` nuevo cliente conectado: ${cliente.id}` );
+            
+           //Conectar cliente
+           socket.conectarCliente(cliente);
+
+           
+           //Configurar usuario
+           socket.usuario(cliente, this.io )
+
             //Mensajes
             socket.mensaje( cliente, this.io )
+
+            
             //desconectar viene de aqui: import * as socket from '../sockets/sockets'
             socket.desconectar( cliente )
 
