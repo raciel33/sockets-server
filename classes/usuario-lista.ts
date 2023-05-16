@@ -35,7 +35,7 @@ export class UsuarioLista{
     
     //Obtener lista
     public getLista(){
-        return this.lista
+        return this.lista.filter( usuario => usuario.nombre !== 'sin-nombre')
     }
 
     //Obtener usuario
@@ -54,7 +54,7 @@ export class UsuarioLista{
     //Borrar un usuario
     public borrarUsuario( id:string){
        
-        const temUser =  this.getUsuario( id );
+    const temUser =  this.getUsuario( id );
 
        this.lista = this.lista.filter( usuario => usuario.id !== id);
        

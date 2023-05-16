@@ -2,8 +2,8 @@
 
 export class Usuario{
 
-    id:string;
-    nombre:string;
+    public id:string;
+    public nombre:string;
     public sala:string;
 
     constructor( id:string){
