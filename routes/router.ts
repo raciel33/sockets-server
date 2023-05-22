@@ -4,10 +4,43 @@ import{ Router, Request, Response } from 'express';
 import Server  from '../classes/server';
 import { Socket } from 'socket.io';
 import { usuariosConectados } from '../sockets/sockets';
+import { GraficaData } from '../classes/grafica';
+import { Mapa } from '../classes/mapa';
 
 export const router = Router();
 
+///PROJECT GRAFICA-------------------------------------------------------------------------------------
 
+//instancia de esta clase
+const grafica = new GraficaData();
+
+//devuelve los datos de la grafica
+router.get('/grafica', ( req: Request, res: Response  ) => {
+
+    res.json( grafica.getDataGrafica() );
+
+});
+
+//va a incrementar el valor que le pasemos del mes indicado
+router.post('/grafica', ( req: Request, res: Response  ) => {
+
+    const mes      = req.body.mes;
+    const unidades = Number( req.body.unidades );
+
+    grafica.incrementarValor( mes, unidades );
+
+    const server = Server.instance;
+
+    server.io.emit('cambio-grafica', grafica.getDataGrafica() );
+
+
+    res.json( grafica.getDataGrafica() );
+
+});
+
+///PROJECT ANGULAR-SOCKETS-------------------------------------------------------------------------------------
+
+// devuelve los mensajes del grupo
 router.get('/mensajes', ( req: Request, res: Response)=> {
    
     res.json({
@@ -115,7 +148,15 @@ router.get('/usuarios/detalle', ( req: Request, res: Response)=> {
         clientes:usuariosConectados.getLista()
 
     })
-    
-
-   
+     
 })
+
+///PROJECT MAPBOX-------------------------------------------------------------------------------------
+const mapa = new Mapa();
+
+//devuelve los datos del marcador
+router.get('/mapa', ( req: Request, res: Response  ) => {
+
+  res.json( mapa.getMarcadores() );
+
+});
