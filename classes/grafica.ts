@@ -1,4 +1,5 @@
 export class GraficaData {
+  
     private meses: string[] = ['enero', 'febrero', 'marzo', 'abril' ];
     private valores: number[] = [0, 0, 0, 0];
 

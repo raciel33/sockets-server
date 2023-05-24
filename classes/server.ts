@@ -51,7 +51,13 @@ export default class Server{
            //Conectar cliente
            socket.conectarCliente(cliente, this.io);
 
-           
+             //mapBox
+             socket.mapaSockets(cliente, this.io );
+
+             //googleMaps
+             socket.googleMapsSockets( cliente, this.io);
+
+
            //Configurar usuario
            socket.usuario(cliente, this.io )
 

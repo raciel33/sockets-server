@@ -3,9 +3,9 @@
 import{ Router, Request, Response } from 'express';
 import Server  from '../classes/server';
 import { Socket } from 'socket.io';
-import { usuariosConectados } from '../sockets/sockets';
+import { mapa, usuariosConectados } from '../sockets/sockets';
 import { GraficaData } from '../classes/grafica';
-import { Mapa } from '../classes/mapa';
+import { googleMaps } from '../classes/google-map';
 
 export const router = Router();
 
@@ -152,11 +152,43 @@ router.get('/usuarios/detalle', ( req: Request, res: Response)=> {
 })
 
 ///PROJECT MAPBOX-------------------------------------------------------------------------------------
-const mapa = new Mapa();
 
 //devuelve los datos del marcador
 router.get('/mapa', ( req: Request, res: Response  ) => {
 
   res.json( mapa.getMarcadores() );
+
+});
+
+///PROJECT GOOGLE-MAPS-------------------------------------------------------------------------------------
+const googleMap = new googleMaps();
+
+const lugares = [
+  {
+    id:'1',
+    nombre: 'Udemy',
+    lat: 37.784679,
+    lng: -122.395936
+  },
+  {
+    id:'2',
+    nombre: 'Bahía de San Francisco',
+    lat: 37.798933,
+    lng: -122.377732
+  },
+  {
+    id:'3',
+    nombre: 'The Palace Hotel',
+    lat: 37.788578,
+    lng: -122.401745
+  }
+];
+
+/**de esta forma se insertan cada elemento del arreglo como elementos independientes */
+googleMap.marcadores.push(...lugares);
+
+router.get('/googleMap', ( req: Request, res: Response  ) => {
+
+  res.json( googleMap.getMarcadores() );
 
 });
