@@ -24,7 +24,7 @@ export class googleMaps{
       this.marcadores = this.marcadores.filter( mark => mark.id != id)
         return this.marcadores;
  }
-
+//
     moverMarcador( marcador: Marcador){
        //iteramos los marcadores
         for (const i in this.marcadores) {
@@ -39,6 +39,6 @@ export class googleMaps{
         }
 
    }
-}
+   }
 
 

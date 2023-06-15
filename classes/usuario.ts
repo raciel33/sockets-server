@@ -1,6 +1,4 @@
-
-
-export class Usuario{
+export class UsuarioSocket{
 
     public id:string;
     public nombre:string;
@@ -10,6 +8,6 @@ export class Usuario{
          
         this.id = id;
         this.nombre = 'sin-nombre';
-        this.sala = 'sin-sala';
-    }
-}
+        this.sala = 'sin-sala'; 
+       }
+}   

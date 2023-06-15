@@ -1,27 +1,29 @@
-import { Usuario } from './usuario';
+import { UsuarioSocket } from './usuario';
 import { usuario } from '../sockets/sockets';
+//import {Usuario} from '../models/usuarios';
 
 
 export class UsuarioLista{
 
-    private lista: Usuario[] = [];
+    public listado : UsuarioSocket[] = [];
+   // public listaArr = Object.entries(this.listaObj)
 
     constructor(){
 
     }
 
     //Agregar un usuario
-    public agregarUsuario( usuario:Usuario){
+    public agregarUsuario( usuario:any){
 
-        this.lista.push( usuario );
-        console.log( this.lista );
-        return usuario
+        this.listado.push( usuario );
+        console.log( this.listado );
+        return usuario;
     }
 
     //actualizar
     actualizarNombre(id: string, nombre:string ){
 
-        for( let usuario of this.lista ){
+        for( let usuario of this.listado ){
             if (usuario.id === id) {
                 usuario.nombre = nombre;
                 break;
@@ -29,37 +31,37 @@ export class UsuarioLista{
             }
         }
         console.log('Usuario actualizado-------------------------------------');
-        console.log(this.lista);
+        console.log(this.listado);
     }
 
     
-    //Obtener lista
-    public getLista(){
-        return this.lista.filter( usuario => usuario.nombre !== 'sin-nombre')
+    //Obtener listado
+    public getlistado(){
+        return this.listado.filter( usuario => usuario.nombre !== 'sin-nombre');
     }
 
     //Obtener usuario
     public getUsuario( id:string){
-        return this.lista.find( usuario => usuario.id === id
+        return this.listado.find( usuario => usuario.id === id
         );
     }
 
-    
+    /*
     //Obtener usuarios en una sala en particular
     public getUsuariosEnSala( sala:string){
         return this.lista.filter( usuario => usuario.sala === sala
         );
-    }
+    }*/
 
     //Borrar un usuario
     public borrarUsuario( id:string){
        
     const temUser =  this.getUsuario( id );
 
-       this.lista = this.lista.filter( usuario => usuario.id !== id);
+       this.listado = this.listado.filter( usuario => usuario.id !== id);
        
-       console.log(this.lista);
+       console.log(this.listado);
        
-       return temUser
+       return temUser;
     }
 }

@@ -1,3 +1,4 @@
+import nodemailer from 'nodemailer';
 
 
 import{ Router, Request, Response } from 'express';
@@ -7,12 +8,22 @@ import { mapa, usuariosConectados } from '../sockets/sockets';
 import { GraficaData } from '../classes/grafica';
 import { googleMaps } from '../classes/google-map';
 
+import Note from '../models/note';
+import  Usuario  from '../models/usuarios';
+import bcrypt from 'bcryptjs'
+import { generarJWT } from '../helpers/jwt';
+
+
+
+
 export const router = Router();
+
+
 
 ///PROJECT GRAFICA-------------------------------------------------------------------------------------
 
 //instancia de esta clase
-const grafica = new GraficaData();
+ const grafica = new GraficaData();
 
 //devuelve los datos de la grafica
 router.get('/grafica', ( req: Request, res: Response  ) => {
@@ -40,17 +51,27 @@ router.post('/grafica', ( req: Request, res: Response  ) => {
 
 ///PROJECT ANGULAR-SOCKETS-------------------------------------------------------------------------------------
 
+//contacto por correo
+router.post('/formulario', (req, res) => {
+  res.status(200).send();
+})
+
 // devuelve los mensajes del grupo
-router.get('/mensajes', ( req: Request, res: Response)=> {
+router.get('/mensajes',async ( req: Request, res: Response)=> {
    
-    res.json({
+  const [notes] = await Promise.all([
+
+    Note.find()
+
+])
+  res.json({
         ok:true,
-        mensaje: 'Todo esta bien'
+        notes
     })
 })
 
 //envio de mensajes a todos los usuarios
-router.post('/mensajes', ( req: Request, res: Response)=> {
+router.post('/mensajes', async( req: Request, res: Response)=> {
    
     const cuerpo = req.body.cuerpo;
     const de = req.body.de;
@@ -64,10 +85,14 @@ router.post('/mensajes', ( req: Request, res: Response)=> {
 
     server.io.emit('mensaje-nuevo', payload )
 
+    
+    
+
     res.json({
         ok:true,
         cuerpo,
-        de
+        de,
+        
     })
 });
 
@@ -143,12 +168,184 @@ router.get('/usuarios', ( req: Request, res: Response)=> {
 //obtener los usuarios y sus nombres
 router.get('/usuarios/detalle', ( req: Request, res: Response)=> {
    
-    res.json({
+      res.json({
         ok:true,
-        clientes:usuariosConectados.getLista()
+        clientes:usuariosConectados.getlistado()
 
     })
      
+})
+
+//register
+router.post('/register', async ( req: Request, res: Response)=> {
+
+  const email = req.body.email
+  const password  = req.body.password; //la respuesta que viene del body
+   
+
+ /* const payload = {
+        email,
+        password
+      };*/
+
+
+  try{
+ 
+   const existeEmail = await Usuario.findOne({ email }); //busca solo este campo
+    const usuario = new Usuario(req.body); //instancia de Usuario del modelo
+
+    //validacion para que el email sea unico
+    if (existeEmail) {
+        //respuesta a dar si existe el email
+        return res.status(400).json({
+            ok: false,
+            msg: "El correo ya existe"
+
+        })
+    }
+
+
+    //Encriptado de contraseña
+    const salt = bcrypt.genSaltSync();
+    usuario.password = bcrypt.hashSync(password, salt);
+
+
+      usuario.save(); //guarda en la BD
+
+
+    //generamos un token/
+    
+    const token = await generarJWT(usuario.id);
+
+
+    res.json({
+         ok: true,
+        usuario, 
+         token 
+        
+    });
+
+
+
+
+}catch (error) {
+    console.log(error);
+
+    res.status(500).json({
+        ok: false,
+        msg: 'Error inesperado ... revisar logs '
+    })
+
+
+
+}
+
+   
+  res.json({
+      ok:true,
+      
+      
+
+  })
+   
+})
+//login
+router.post('/login', async ( req: Request, res: Response)=> {
+
+  const { email, password } = req.body //extraemos el email y password
+
+  try {
+      //verificar email
+      const usuarioBD = await Usuario.findOne({ email }); //captamos el email
+
+      //si no existe el email
+      if (!usuarioBD) {
+          return res.status(404).json({
+              ok: false,
+              msg: 'email no es valido'
+          })
+      }
+
+      //verificar contraseña
+      /*bcrypt.compareSync: compara la contraseña que escribimos con la que esta en la base de datos
+      (devuelve true si coincide)
+      */
+      const validPassword = bcrypt.compareSync(password, usuarioBD.password);
+      //
+      if (!validPassword) {
+          return res.status(404).json({
+              ok: false,
+              msg: 'password no es valido'
+          })
+      }
+
+      //Generar un tokens
+      //generarJWT: viene de /heplpers/jw.js
+      const token = await generarJWT(usuarioBD.id);
+
+      //Si todo va bien devuelve :
+      res.json({
+          ok: true,
+          token,
+          usuarioBD
+          
+      });
+
+
+  } catch (error) {
+      console.log(error);
+      res.status(500).json({
+          ok: false,
+          msg: 'Error inesperado'
+      });
+
+  }
+})
+
+//saca al usuario cuando expire el token
+router.get('/renew',async (req: Request, res: Response ) => {
+
+  const uid = req.body.uid;
+
+  //Generar un tokens
+  //generarJWT: viene de /heplpers/jw.js
+  const token = await generarJWT(uid);
+
+  //Obtener el usuario por UID
+  const usuarioBD = await Usuario.findById(uid);
+
+  //Si todo va bien
+  res.json({
+      ok: true,
+      usuarioBD,
+      token,
+
+  })
+})
+
+
+router.get('/usuario/:id', async ( req: Request, res: Response)=> {
+
+  const id = req.params.id; //captamos el id del medico a actualizar
+
+  try {
+      /**NOTA: con la funcion popularte() podemos extraer facilmente el usuario y los hospitales que creo el medico
+       * y acceder a sus campos nombre, email, etc...
+       */
+      const usuario = await Usuario.findById(id)
+
+      res.json({
+          ok: true,
+          usuario
+      }); 
+
+  } catch (error) {
+      res.json({
+          ok: true,
+          msg: 'hable con el administrador'
+      });
+
+  }
 })
 
 ///PROJECT MAPBOX-------------------------------------------------------------------------------------
@@ -158,7 +355,15 @@ router.get('/mapa', ( req: Request, res: Response  ) => {
 
   res.json( mapa.getMarcadores() );
 
-});
+   });
+
+
+
+
+
+
+
+
 
 ///PROJECT GOOGLE-MAPS-------------------------------------------------------------------------------------
 const googleMap = new googleMaps();
@@ -192,3 +397,7 @@ router.get('/googleMap', ( req: Request, res: Response  ) => {
   res.json( googleMap.getMarcadores() );
 
 });
+function configContacto(body: any) {
+  throw new Error('Function not implemented.');
+}
+

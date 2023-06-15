@@ -33,7 +33,7 @@ export default class Server{
          this.httpServer = new http.Server( this.app );
          this.io = new socketIO.Server( this.httpServer, { cors: { origin: true, credentials: true } } );
   
-          this.escucharSockets();
+         this.escucharSockets();
         }                                    
 
     //para poder acceder a los metodos y propiedades de la clase Server
@@ -55,7 +55,7 @@ export default class Server{
              socket.mapaSockets(cliente, this.io );
 
              //googleMaps
-             socket.googleMapsSockets( cliente, this.io);
+             socket.googleMapsSockets( cliente,  this.io);
 
 
            //Configurar usuario
